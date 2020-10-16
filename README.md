@@ -19,3 +19,9 @@ LED strip : https://www.adafruit.com/product/1138?length=1
 
 Then they are connected as per the following:
 <img src="rainmaker/rainmaker_bb.jpg" alt="drawing" width="600"/>
+
+### Required libraries 
+The following libraries need to be installed before uploading the arduino code to esp32:  
+FastLED.h: https://github.com/FastLED/FastLED  
+Adafruit_Sensor.h:  https://github.com/adafruit/Adafruit_Sensor  
+Adafruit_BNO055: https://github.com/adafruit/Adafruit_BNO055
