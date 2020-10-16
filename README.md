@@ -11,12 +11,11 @@
  - Recieve messages from the rainmaker that contains infromation about the tasks progess
 
 ### Preparing the hardware:
-The following components have been used: 
-Battery : https://www.adafruit.com/product/2750
-Microcontroller : https://www.adafruit.com/product/2821
-Orientation Sensor : https://learn.adafruit.com/adafruit-bno055-absolute-orientation-sensor
-LED strip : https://www.adafruit.com/product/1138?length=1
+The following components have been used:  
+Battery : https://www.adafruit.com/product/2750  
+Microcontroller : https://www.adafruit.com/product/2821  
+Orientation Sensor : https://learn.adafruit.com/adafruit-bno055-absolute-orientation-sensor  
+LED strip : https://www.adafruit.com/product/1138?length=1  
 
 Then they are connected as per the following:
-
 <img src="rainmaker/rainmaker_bb.jpg" alt="drawing" width="600"/>
