@@ -18,7 +18,7 @@ Orientation Sensor : https://learn.adafruit.com/adafruit-bno055-absolute-orienta
 LED strip : https://www.adafruit.com/product/1138?length=1  
 
 Then they are connected as per the following (click on image to show in full size):
-<img src="rainmaker/rainmaker_bb.jpg" alt="drawing" width="450"/>
+<img src="rainmaker_bb.jpg" alt="drawing" width="450"/>
 
 ### Required libraries 
 The following libraries need to be installed before uploading the arduino code to esp32:  
