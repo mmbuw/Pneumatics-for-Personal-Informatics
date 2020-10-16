@@ -13,4 +13,4 @@
 
 ![picture](./rainmaker/rainmaker_bb.jpg =250x)
 
-<img src="rainmaker/rainmaker_bb.jpg" alt="drawing" style="width:50px;"/>
+<img src="rainmaker/rainmaker_bb.jpg" alt="drawing" width="50"/>
