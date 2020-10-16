@@ -11,6 +11,6 @@
 #### - Recieve messages from the rainmaker that contains infromation about the tasks progess
 
 
-![picture](rainmaker/rainmaker_bb.jpg)
+![picture](rainmaker/rainmaker_bb.jpg =100x20)
 
 
