@@ -2,6 +2,7 @@
 ## 1- Arduino Code for The Esp32 controller (esp32_control):
 #### - Make esp32 run as a Bluetooth server 
 #### - Recieve the readings from the connected accelerometer and classify them based on certian thresholds 
+#### - The classifed events could be one of the following: shaking (to toggle power saving mode), flip horizentally (toggle break mode), flip 180 degrees (toggle finishing a task)
 #### - Based on the classifed event, change the LED output and send short messages to the connected Bluetooth device, that is unless one of the classifed events is "shaking", in which case it will tuggle the Bluetooth and LED strip on and off
 
 ## 2- Andoid app (rainmaker_app):
