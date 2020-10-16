@@ -13,4 +13,4 @@
 
 
 
-<img src="rainmaker/rainmaker_bb.jpg" alt="drawing" width="200"/>
+<img src="rainmaker/rainmaker_bb.jpg" alt="drawing" width="400"/>
