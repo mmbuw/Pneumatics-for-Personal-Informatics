@@ -55,6 +55,19 @@
             android:layout_toEndOf="@id/textViewBat"
             app:srcCompat="@mipmap/bat_full" />
 
+        <ToggleButton
+            android:id="@+id/toggleButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            android:checked="true"
+            android:text="ToggleButton"
+
+
+            android:background="@drawable/laout_bt_bg"
+            android:foreground="@drawable/ripple_bg"
+            android:textColor="#B1B1B1"/>
+
         <Button
             android:id="@+id/btnReset"
             android:layout_width="wrap_content"
@@ -86,6 +99,8 @@
             android:textColor="#B1B1B1" />
 
 
+
+
     </RelativeLayout>
 
 
@@ -97,7 +112,7 @@
         android:background="@color/colorPrimaryDark"
         android:gravity="center"
         android:padding="5dp"
-        android:text="Congrats! You finished all your tasks. \n Work/break time tracking is stopped."
+        android:text="Congrats! You finished all your tasks."
         android:textColor="@color/colorAccent"
         android:textSize="18sp"
         android:visibility="gone" />

@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "346317426024",
+    "project_id": "pioneering-rex-246201",
+    "storage_bucket": "pioneering-rex-246201.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:346317426024:android:ef354a11009a09c5b11add",
+        "android_client_info": {
+          "package_name": "com.example.led_control"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "346317426024-2ik6upjt8ufgof19680ldspthk8d4b77.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyACz_N4O_D7mKzuqXQp4BcVmGA-pq1ugRo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "346317426024-2ik6upjt8ufgof19680ldspthk8d4b77.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

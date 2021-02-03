@@ -1,6 +1,7 @@
 package com.example.led_control;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.recyclerview.widget.ItemTouchHelper;
@@ -8,6 +9,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
@@ -18,13 +20,16 @@ import android.content.pm.PackageManager;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.os.Build;
 import android.os.Bundle;
 
 import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
 import android.os.Handler;
+import android.provider.Settings;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -35,15 +40,23 @@ import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.os.AsyncTask;
+import android.widget.ToggleButton;
 
+import com.google.android.gms.common.util.ArrayUtils;
+import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.jakewharton.threetenabp.AndroidThreeTen;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
+//import java.time.LocalTime;
+import org.threeten.bp.LocalTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -53,11 +66,17 @@ import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator
 
 public class ledControl extends AppCompatActivity implements DialogTaskClass.DialogListener {
 
+    FirebaseAnalytics firebaseAnalytics =FirebaseAnalytics.getInstance(this);
+
+
+
+    private static String userID = null;
+    private static final String PREF_UNIQUE_ID = "PREF_UNIQUE_ID";
 
     public int task_n = 0;
     public static String SHARED_PREFS = "sharedPrefs";
 
-
+    ToggleButton toggleButton;
     Button btnBat, btnReset;
     FloatingActionButton floatBtn;
 
@@ -85,6 +104,7 @@ public class ledControl extends AppCompatActivity implements DialogTaskClass.Dia
     BluetoothAdapter myBluetooth = null;
     public static BluetoothSocket btSocket = null;
     public boolean isBtConnected = false;
+
     static final UUID myUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
 
@@ -97,11 +117,17 @@ public class ledControl extends AppCompatActivity implements DialogTaskClass.Dia
     int counter;
     volatile boolean stopWorker;
 
+    String toggle_msg="";
+    String toggle_alert="";
+    String androidId;
+    String session_start_time;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        AndroidThreeTen.init(this);
 
 //        requestWindowFeature(getWindow().FEATURE_NO_TITLE);
 //
@@ -120,6 +146,73 @@ public class ledControl extends AppCompatActivity implements DialogTaskClass.Dia
         setContentView(R.layout.activity_led_control);
 
         //call the widgtes
+//         androidId = Settings.Secure.getString(getContentResolver(),
+//                Settings.Secure.ANDROID_ID);
+
+        userID=getUserId();
+        //msg(userID);
+        firebaseAnalytics.setUserId(userID);
+
+
+        toggleButton= findViewById(R.id.toggleButton);
+        toggleButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @SuppressLint("InvalidAnalyticsName")
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+
+
+
+                if (toggleButton.isChecked()){
+                    toggle_msg="TO";
+                    toggle_alert="On!";
+                }
+                else{
+                    toggle_msg="TF";
+                    toggle_alert="Off!";
+
+                }
+
+
+
+                if (btSocket != null) {
+                    if ((btSocket.isConnected()) && (myBluetooth.isEnabled())) {
+
+                        try {
+                            btSocket.getOutputStream().write("".getBytes());
+
+
+                            //btSocket.getOutputStream().write("D".toString().getBytes());
+                            btSocket.getOutputStream().write((toggle_msg).getBytes());
+
+
+                        } catch (IOException e) {
+
+
+
+                            msg("Not connected. Please press CONNECT and try again");
+                            recyclerAdapter.notifyDataSetChanged();
+                            textViewTitle.setText("Not connected!");
+                            btnBat.setText("CONNECT");
+                        }
+
+                    } else {
+
+                        msg("Not connected. Please press CONNECT and try again");
+                        recyclerAdapter.notifyDataSetChanged();
+                        textViewTitle.setText("Not connected!");
+                        btnBat.setText("CONNECT");
+                    }
+                }
+                else{
+
+
+                    msg("Not connected. Please press CONNECT and try again");
+                    recyclerAdapter.notifyDataSetChanged();
+                    textViewTitle.setText("Not connected!");
+                    btnBat.setText("CONNECT");
+                }
+            }
+        });
 
 
         imageViewBat = findViewById(R.id.imageViewBat);
@@ -151,6 +244,7 @@ public class ledControl extends AppCompatActivity implements DialogTaskClass.Dia
 
                                 //bundle.putString("taskName", textViewTask.getText().toString());
                                 bundle.putBoolean("editMode", false);
+
                                 //bundle.putInt("taskId",position);
 
                                 dialogTaskClass.setArguments(bundle);
@@ -203,7 +297,7 @@ public class ledControl extends AppCompatActivity implements DialogTaskClass.Dia
                     if (btSocket.isConnected() && myBluetooth.isEnabled()) {
                         new AlertDialog.Builder(ledControl.this)
                                 .setTitle("Reset?")
-                                .setMessage("Your progress and work/break time will be reset. Are you sure?")
+                                .setMessage("Your progress will be reset. Are you sure?")
                                 .setIcon(android.R.drawable.ic_dialog_alert)
                                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
 
@@ -410,7 +504,7 @@ public class ledControl extends AppCompatActivity implements DialogTaskClass.Dia
 
                                 //btSocket.getOutputStream().write("D".toString().getBytes());
                                 btSocket.getOutputStream().write(("D" + position + finishedTasksList.size()).getBytes());
-                                msg(String.valueOf(tasksList.size()));
+                                //msg(String.valueOf(tasksList.size()));
 
 
                             } catch (IOException e) {
@@ -451,6 +545,7 @@ public class ledControl extends AppCompatActivity implements DialogTaskClass.Dia
                     Bundle bundle = new Bundle();
                     bundle.putString("taskName", textViewTask.getText().toString());
                     bundle.putBoolean("editMode", true);
+                    bundle.putString("session_time", session_start_time);
                     bundle.putInt("taskId", position);
 
                     dialogTaskClass.setArguments(bundle);
@@ -480,56 +575,6 @@ public class ledControl extends AppCompatActivity implements DialogTaskClass.Dia
         finish(); //return to the first layout
     }
 
-    public boolean ping(){
-        boolean alive = false;
-
-        if (btSocket!=null) {
-
-            if (btSocket.isConnected() && (myBluetooth.isEnabled())) {
-                try {
-
-                    btSocket.getOutputStream().write("N".getBytes());
-
-                    int bytesAvailable = btSocket.getInputStream().available();
-                    if (bytesAvailable > 0) {
-
-                        alive= true;
-
-                    }
-
-
-
-                } catch (Exception e) {
-
-                    // ADD THIS TO SEE ANY ERROR
-                    msg("Not connected. Please press CONNECT and try again");
-                    textViewTitle.setText("Not connected!");
-                    btnBat.setText("CONNECT");
-                }
-
-
-
-
-                //recyclerAdapter.notifyDataSetChanged();
-            } else {
-
-                msg("Not connected. Please press CONNECT and try again");
-                textViewTitle.setText("Not connected!");
-                btnBat.setText("CONNECT");
-
-
-            }
-        }
-        else{
-            msg("Not connected. Please press CONNECT and try again");
-            textViewTitle.setText("Not connected!");
-            btnBat.setText("CONNECT");
-
-        }
-
-
-        return alive;
-    }
 
     public void Refresh(final boolean once) {
         if (btSocket!=null) {
@@ -576,6 +621,8 @@ public class ledControl extends AppCompatActivity implements DialogTaskClass.Dia
                                                     public void run() {
 
                                                         if (encodedBytes.length != 1) {
+
+                                                            // message contains in order: bat lvl, finished tasks,
                                                             //msg(data);
 
                                                             //int splitter= data.indexOf('T');
@@ -655,9 +702,50 @@ public class ledControl extends AppCompatActivity implements DialogTaskClass.Dia
                                                                     multiAutoCompleteTextView.setVisibility(View.GONE);
 
                                                                 }
+                                                            }
 
+
+
+                                                            if (contains(encodedBytes,'f')){
+
+                                                                int list_index= find(encodedBytes, (byte) 'f');
+                                                                int session_end_time = encodedBytes[list_index+1];
+                                                                //msg("session duration: "+ String.valueOf(encodedBytes[list_index+1]));
+
+                                                                Bundle bundle = new Bundle();
+                                                                bundle.putInt("session_ended_after", session_end_time);
+                                                                bundle.putString("session_time", session_start_time);
+                                                                firebaseAnalytics.logEvent("session_ended", bundle);
 
                                                             }
+
+
+                                                            if (contains(encodedBytes,'e')){
+
+                                                                int list_index= find(encodedBytes, (byte) 'e');
+                                                                int pom_end_time = encodedBytes[list_index+1];
+                                                                //msg("Pom duration: "+ String.valueOf(encodedBytes[list_index+1]));
+
+                                                                Bundle bundle = new Bundle();
+                                                                bundle.putInt("pom_duration", pom_end_time);
+                                                                bundle.putString("session_time", session_start_time);
+                                                                firebaseAnalytics.logEvent("pom_ended", bundle);
+
+                                                            }
+
+                                                            if (contains(encodedBytes,'s')){
+                                                                int list_index= find(encodedBytes, (byte) 's');
+                                                                int pom_start_time = encodedBytes[list_index+1];
+                                                                //msg("Pom started after: "+ String.valueOf(encodedBytes[list_index+1]));
+
+                                                                Bundle bundle = new Bundle();
+                                                                bundle.putInt("duration_from_start", pom_start_time);
+                                                                bundle.putString("session_time", session_start_time);
+                                                                firebaseAnalytics.logEvent("pom_started", bundle);
+
+                                                            }
+
+
 
                                                         }
 
@@ -704,6 +792,7 @@ public class ledControl extends AppCompatActivity implements DialogTaskClass.Dia
                 btnBat.setText("CONNECT");
 
 
+
             }
         }
         else{
@@ -730,6 +819,7 @@ public class ledControl extends AppCompatActivity implements DialogTaskClass.Dia
 
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void applyText(String taskName, boolean editMode, int taskId) {
 
@@ -747,6 +837,19 @@ public class ledControl extends AppCompatActivity implements DialogTaskClass.Dia
 
                         btSocket.getOutputStream().write("".getBytes());
                         tasksList.add(taskName);
+                        if (tasksList.size()==1){
+
+
+                            LocalTime time = LocalTime.now();
+                            //LocalDateTime time= Loca
+                            session_start_time = time.toString();
+                            //msg(time.toString());
+                            Bundle bundle = new Bundle();
+                            bundle.putString("session_time", session_start_time);
+                            bundle.putString("user_id", androidId);
+                            firebaseAnalytics.logEvent("start_session", bundle);
+
+                        }
 
                         //recyclerAdapter.notifyItemInserted(tasksList.size()-1);
                         recyclerAdapter.notifyDataSetChanged();
@@ -754,6 +857,12 @@ public class ledControl extends AppCompatActivity implements DialogTaskClass.Dia
                         saveData();
 
                         btSocket.getOutputStream().write(String.valueOf(tasksList.size() + finishedTasksList.size()).getBytes());
+                        Bundle bundle = new Bundle();
+                        bundle.putString("name", taskName);
+                        bundle.putString("user_id", androidId);
+                        bundle.putString("session_time", session_start_time);
+                        firebaseAnalytics.logEvent("task_added", bundle);
+
 
                     } catch (IOException e) {
 
@@ -787,10 +896,10 @@ public class ledControl extends AppCompatActivity implements DialogTaskClass.Dia
         {
             try {
 
-
                 myBluetooth = BluetoothAdapter.getDefaultAdapter();//get the mobile bluetooth device
-                BluetoothDevice dispositivo = myBluetooth.getRemoteDevice("24:6F:28:80:E4:82");//connects to the device's address and checks if it's available
+                //BluetoothDevice dispositivo = myBluetooth.getRemoteDevice("24:6F:28:80:E4:82");//connects to the device's address and checks if it's available
                 //BluetoothDevice dispositivo = myBluetooth.getRemoteDevice("FC:F5:C4:07:66:5E"); // second prototype
+                BluetoothDevice dispositivo = myBluetooth.getRemoteDevice("B4:E6:2D:EA:3B:63"); // test prototype
                 btSocket = dispositivo.createInsecureRfcommSocketToServiceRecord(myUUID);//create a RFCOMM (SPP) connection
                 BluetoothAdapter.getDefaultAdapter().cancelDiscovery();
                 btSocket.connect();//start connection
@@ -880,6 +989,21 @@ public class ledControl extends AppCompatActivity implements DialogTaskClass.Dia
         }
     }
 
+    public synchronized String getUserId() {
+        if (userID == null) {
+            SharedPreferences sharedPreferences = getSharedPreferences(SHARED_PREFS, MODE_PRIVATE);
+
+            userID = sharedPreferences.getString(PREF_UNIQUE_ID, null);
+            if (userID == null) {
+                userID = UUID.randomUUID().toString();
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putString(PREF_UNIQUE_ID, userID);
+                editor.commit();
+            }
+        }
+        return userID;
+    }
+
 
     private void saveData() {
         SharedPreferences sharedPreferences = getSharedPreferences(SHARED_PREFS, MODE_PRIVATE);
@@ -889,6 +1013,7 @@ public class ledControl extends AppCompatActivity implements DialogTaskClass.Dia
         String json = gson.toJson(tasksList);
         String jsonFinished = gson.toJson(finishedTasksList);
         String bat = textViewBat.getText().toString();
+
 
 
         SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -931,6 +1056,7 @@ public class ledControl extends AppCompatActivity implements DialogTaskClass.Dia
         }
 
 
+
         //recyclerAdapter.notifyDataSetChanged();}
 
 
@@ -952,6 +1078,32 @@ public class ledControl extends AppCompatActivity implements DialogTaskClass.Dia
             msg("job failed :(");
         }
 
+    }
+
+
+    public static boolean contains(final byte[] array, final int v) {
+
+        boolean result = false;
+
+        for(int i : array){
+            if(i == v){
+                result = true;
+                break;
+            }
+        }
+
+        return result;
+    }
+
+
+
+    public static int find(byte[] a, byte target)
+    {
+        for (int i = 0; i < a.length; i++)
+            if (a[i] == target)
+                return i;
+
+        return -1;
     }
 
 
