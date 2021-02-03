@@ -2,7 +2,7 @@
 ### 1- Arduino Code for The Esp32 controller (esp32_control):
  - Make esp32 run as a Bluetooth server 
  - Recieve the readings from the connected accelerometer and classify them based on certian thresholds 
- - The classifed events could be one of the following: shaking (to finish a task), flip horizentally (swtich to  task view when pomodoro is mode is om), flip 180 degrees (toggle pomodoro)
+ - The classifed events could be one of the following: shaking (to finish a task), flip horizentally (swtich to  task view when pomodoro mode is on), flip 180 degrees (toggle pomodoro)
  - Based on the classifed event, change the LED output and send short messages to the connected Bluetooth device.
 
 ### 2- Andoid app (rainmaker_app):
